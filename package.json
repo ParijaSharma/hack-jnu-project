@@ -1,0 +1,13 @@
+{
+  "name": "msme-compliance-platform",
+  "private": true,
+  "scripts": {
+    "install-all": "npm install --prefix msmeBackend && npm install --prefix HACK-JNU-main && npm install --prefix msme_compliance/msme-compliance-navigator-ui-main",
+    "dev": "concurrently \"npm run dev --prefix msmeBackend\" \"npm run dev --prefix HACK-JNU-main\"",
+    
+    "dev:all": "concurrently \"npm run dev --prefix msmeBackend\" \"npm run dev --prefix HACK-JNU-main\" \"npm run dev --prefix msme_compliance/msme-compliance-navigator-ui-main\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
