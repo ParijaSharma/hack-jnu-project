@@ -2,6 +2,8 @@ import express from "express";
 import { connectDB } from "./config/db.js";
 import businessRoutes from "./routes/business.routes.js";
 import authRoutes from "./routes/auth.routes.js"
+import dashboardRoutes from "./routes/dashboard.routes.js"
+import chatRoutes from "./routes/chats.routes.js"
 import dotenv from "dotenv";
 import cors from "cors";
 // import app from "app"
@@ -18,6 +20,9 @@ app.use(cors({
 
 dotenv.config();
 connectDB();
+
+app.use("/api/dashboard", dashboardRoutes)
+app.use("/api/chat", chatRoutes)
 
 app.use("/api/business", businessRoutes);
 

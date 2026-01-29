@@ -4,7 +4,7 @@ import MainContent from "./components/MainContent";
 import TopBar from "./components/TopBar";
 import ProfilePage from "./components/ProfilePage";
 import AnalyticsDashboard from "./components/AnalyticsDashboard";
-
+import LoginPage from './components/LoginPage';
 
 function App() {
   const [isDark, setIsDark] = useState(false);
@@ -12,7 +12,7 @@ function App() {
   const [activePage, setActivePage] = useState("home");
   const [googleUser, setGoogleUser] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-
+  const [authChecked, setAuthChecked] = useState(false);
   const [userProfile, setUserProfile] = useState({
     businessOwnerName: "",
     businessName: "",
@@ -27,7 +27,7 @@ function App() {
     picture: "",
   });
 
-  // ------------------ API ------------------
+  // ------------------ FETCH PROFILE ------------------
   const fetchProfile = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -48,21 +48,7 @@ function App() {
     }
   };
 
-  // ------------------ AUTH ------------------
-  const handleLoginSuccess = (user) => {
-    setGoogleUser(user);
-    setIsLoggedIn(true);
-    fetchProfile();
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    setGoogleUser(null);
-    setIsLoggedIn(false);
-    setActivePage("home");
-  };
-
-  // Auto login if token exists
+  // ------------------ AUTO LOGIN ------------------
   // useEffect(() => {
   //   const token = localStorage.getItem("token");
   //   if (token) {
@@ -70,8 +56,25 @@ function App() {
   //     fetchProfile();
   //   }
   // }, []);
+// useEffect(() => {
+//   const token = localStorage.getItem("token");
+//   if (token) {
+//     setIsLoggedIn(true);
+//   }
+//   setAuthChecked(true);  
+// }, []);
 
-  // Theme
+useEffect(() => {
+  setAuthChecked(true);   // only allow rendering
+}, []);
+
+useEffect(() => {
+  if (isLoggedIn) {
+    fetchProfile();
+  }
+}, [isLoggedIn]);
+
+  // ------------------ THEME ------------------
   useEffect(() => {
     if (isDark) {
       document.documentElement.classList.add("dark");
@@ -79,6 +82,40 @@ function App() {
       document.documentElement.classList.remove("dark");
     }
   }, [isDark]);
+
+  // ------------------ LOGIN ------------------
+  // const handleLoginSuccess = (user, token) => {
+  //   localStorage.setItem("token", token);
+  //   setGoogleUser(user);
+  //   setIsLoggedIn(true);
+  //   fetchProfile();
+  // };
+
+  const handleLoginSuccess = async (user, token, onboardingData) => {
+  localStorage.setItem("token", token);
+  setGoogleUser(user);
+  setIsLoggedIn(true);
+
+  if (onboardingData) {
+    await fetch("http://localhost:5000/api/business", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(onboardingData),
+    });
+  }
+
+  fetchProfile();
+};
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    setGoogleUser(null);
+    setIsLoggedIn(false);
+    setActivePage("home");
+  };
 
   const handleViewProfile = () => {
     setActivePage("profile");
@@ -108,16 +145,25 @@ function App() {
       alert("Failed to save profile");
     }
   };
+  if (!authChecked) {
+  return (
+    <div className="h-screen flex items-center justify-center text-lg">
+      Loading...
+    </div>
+  );
+}
+
 
   // ------------------ LOGIN SCREEN ------------------
   if (!isLoggedIn) {
-  setIsLoggedIn(true);   // temporary bypass
-}
+    return <LoginPage onLoginSuccess={handleLoginSuccess} />;
+  }
 
   // ------------------ DASHBOARD ------------------
   return (
     <div className={`min-h-screen ${isDark ? "dark bg-slate-950" : "bg-slate-50"}`}>
       <div className="flex h-screen overflow-hidden">
+
         <Sidebar
           collapsed={sidebarCollapsed}
           onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
@@ -128,6 +174,7 @@ function App() {
         />
 
         <div className="flex-1 flex flex-col overflow-hidden">
+
           <TopBar
             isDark={isDark}
             onThemeToggle={() => setIsDark(!isDark)}
@@ -148,10 +195,12 @@ function App() {
               onBack={() => setActivePage("home")}
             />
           )}
+
         </div>
       </div>
     </div>
   );
 }
+
 
 export default App;

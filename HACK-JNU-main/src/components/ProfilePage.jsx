@@ -4,7 +4,8 @@ import { FiArrowLeft, FiEdit, FiSave, FiUser, FiBriefcase, FiMapPin, FiMail, FiP
 const ProfilePage = ({ userProfile, onSave, onBack }) => {
   const [isEditing, setIsEditing] = useState(false)
   const [formData, setFormData] = useState(userProfile || {})
-
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
   useEffect(() => {
     if (userProfile) {
       setFormData(userProfile)
@@ -19,10 +20,22 @@ const ProfilePage = ({ userProfile, onSave, onBack }) => {
     }))
   }
 
-  const handleSave = () => {
-    onSave(formData)
-    setIsEditing(false)
+  const handleSave = async () => {
+  try {
+    setSaving(true);
+    setError("");
+
+    await onSave(formData);   // backend save
+
+    setIsEditing(false);
+  } catch (err) {
+    console.error(err);
+    setError("Failed to save profile. Try again.");
+  } finally {
+    setSaving(false);
   }
+};
+
 
   const handleCancel = () => {
     setFormData(userProfile || {})
@@ -47,6 +60,12 @@ const ProfilePage = ({ userProfile, onSave, onBack }) => {
             </div>
           </div>
 
+          {error && (
+            <p className="text-sm text-red-600 mb-2">
+              {error}
+            </p>
+          )}
+
           <div className="flex items-center gap-2">
             {!isEditing ? (
               <button
@@ -65,12 +84,15 @@ const ProfilePage = ({ userProfile, onSave, onBack }) => {
                   Cancel
                 </button>
                 <button
-                  onClick={handleSave}
-                  className="px-4 py-2 rounded-lg border border-green-300/70 bg-green-500/10 dark:bg-green-900/40 text-green-700 dark:text-green-300 hover:bg-green-500/20 dark:hover:bg-green-900/60 flex items-center gap-2 text-sm font-medium"
-                >
-                  <FiSave size={18} />
-                  Save Changes
-                </button>
+                onClick={handleSave}
+                disabled={saving}
+                className="px-4 py-2 rounded-lg border border-green-300/70 
+                          bg-green-500/10 disabled:opacity-50
+                          text-green-700 flex items-center gap-2 text-sm font-medium"
+              >
+                <FiSave size={18} />
+                {saving ? "Saving..." : "Save Changes"}
+              </button>
               </>
             )}
           </div>

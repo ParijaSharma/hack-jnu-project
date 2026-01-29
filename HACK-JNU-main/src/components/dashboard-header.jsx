@@ -18,7 +18,7 @@ const navItems = [
   { label: "Profile", href: "#" },
 ]
 
-export function DashboardHeader() {
+export default function DashboardHeader() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   return (

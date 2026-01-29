@@ -34,11 +34,15 @@ router.post("/", authMiddleware, async (req, res) => {
   }
 });
 
-  // GET LOGGED IN USER BUSINESS
 
+  // GET LOGGED IN USER BUSINESS
 router.get("/me", authMiddleware, async (req, res) => {
   try {
-    const business = await Business.findOne({ owner: req.userId });
+    console.log("FETCH USER ID:", req.userId);
+
+    const business = await Business.findOne({
+      owner: req.userId
+    });
 
     if (!business) {
       return res.status(404).json({ message: "No profile found" });
